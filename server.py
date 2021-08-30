@@ -5,11 +5,16 @@ from sqlalchemy.engine import Engine
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 
+from linked_list import LinkedList
+
 # app
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///sqlitedb.file"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = 0
+
+SUCCESS_STATUS = 200
+FAILED_STATUS = 404
 
 
 # configure sqlite3 to enforce foreign key constraints
@@ -33,7 +38,7 @@ class User(db.Model):
     email = db.Column(db.String(50))
     address = db.Column(db.String(200))
     phone = db.Column(db.String(50))
-    posts = db.relationship("BlogPost")
+    posts = db.relationship("BlogPost", cascade="all, delete")
 
 
 class BlogPost(db.Model):
@@ -49,27 +54,84 @@ class BlogPost(db.Model):
 # routes
 @app.route("/user", methods=["POST"])
 def create_user():
-    pass
+    data = request.get_json()
+    new_user = User(
+        name=data["name"],
+        email=data["email"],
+        address=data["address"],
+        phone=data["phone"],
+    )
+    db.session.add(new_user)
+    db.session.commit()
+    return jsonify({"message": "User created"}), SUCCESS_STATUS
 
 
 @app.route("/user/descending_id", methods=["GET"])
 def get_all_users_descending():
-    pass
+    users = User.query.all()  # this gives user in ascending order by id
+    all_users_ll = LinkedList()
+
+    for user in users:
+        all_users_ll.insert_at_beginning(  # insert beginning makes this descending
+            data={
+
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "address": user.address,
+                "phone": user.phone
+            }
+        )
+
+    return jsonify(all_users_ll.to_list()), SUCCESS_STATUS
 
 
 @app.route("/user/ascending_id", methods=["GET"])
 def get_all_users_ascending():
-    pass
+    users = User.query.all()  # this gives user in ascending order by id
+    all_users_ll = LinkedList()
+
+    for user in users:
+        all_users_ll.insert_at_end(  # insert at end makes this ascending
+            data={
+
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "address": user.address,
+                "phone": user.phone
+            }
+        )
+
+    return jsonify(all_users_ll.to_list()), SUCCESS_STATUS
 
 
 @app.route("/user/<user_id>", methods=["GET"])
 def get_one_user(user_id):
-    pass
+    users = User.query.all()
+    all_users_ll = LinkedList()
+
+    for user in users:
+        all_users_ll.insert_at_beginning(
+            data={
+
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "address": user.address,
+                "phone": user.phone
+            }
+        )
+    user = all_users_ll.get_data_by_id(user_id)
+    return jsonify(user), SUCCESS_STATUS
 
 
 @app.route("/user/<user_id>", methods=["DELETE"])
 def delete_user(user_id):
-    pass
+    user = User.query.filter_by(id=user_id).first()
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({"message": f"User {user_id} deleted from database"}), SUCCESS_STATUS
 
 
 @app.route("/blog_post/<user_id>", methods=["POST"])
