@@ -1,4 +1,6 @@
 from typing import Optional, List
+
+
 class Node:
     def __init__(self, data=None, next_node=None):
         self.data = data
@@ -14,7 +16,7 @@ class Data:
 class HashTable:
     def __init__(self, table_size):
         self.table_size: int = table_size
-        self.hash_table: List[Optional[Node]]  = [None] * table_size
+        self.hash_table: List[Optional[Node]] = [None] * table_size
 
     def custom_hash(self, key):
         hash_value = 0
@@ -32,7 +34,7 @@ class HashTable:
             while node.next_node:
                 node = node.next_node
 
-            node.next_node = Node(Data(key, value ), None)
+            node.next_node = Node(Data(key, value), None)
 
     def get_value(self, key):
         hashed_key = self.custom_hash(key)
@@ -59,11 +61,11 @@ class HashTable:
                 if node.next_node:
                     while node.next_node:
                         llist_string += (
-                            str(node.data.key) + " : " + str(node.data.value) + " --> "
+                                str(node.data.key) + " : " + str(node.data.value) + " --> "
                         )
                         node = node.next_node
                     llist_string += (
-                        str(node.data.key) + " : " + str(node.data.value) + " --> None"
+                            str(node.data.key) + " : " + str(node.data.value) + " --> None"
                     )
                     print(f"    [{i}] {llist_string}")
                 else:
@@ -80,4 +82,3 @@ if __name__ == '__main__':
     ht.add_key_value("shubham", "there")
     ht.add_key_value("samiksha", "there")
     ht.print_table()
-
