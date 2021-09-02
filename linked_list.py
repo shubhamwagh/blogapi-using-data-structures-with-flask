@@ -1,18 +1,18 @@
 from typing import Optional
 
 
-class Node(object):
+class Node:
     def __init__(self, data=None, next_node=None):
         self.data = data
         self.next_node = next_node
 
 
-class LinkedList(object):
+class LinkedList:
     def __init__(self):
         self.head: Optional[Node] = None
         self.last_node: Optional[Node] = None
 
-    def print_ll(self):
+    def __repr__(self):
         ll_string = ""
         node = self.head
         while node:
