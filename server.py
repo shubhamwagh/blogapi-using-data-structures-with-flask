@@ -6,6 +6,7 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 
 from linked_list import LinkedList
+from hash_table import HashTable
 
 # app
 app = Flask(__name__)
@@ -13,8 +14,8 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///sqlitedb.file"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = 0
 
-SUCCESS_STATUS = 200
-FAILED_STATUS = 404
+SUCCESS_RESPONSE = 200
+ERROR_RESPONSE = 400
 
 
 # configure sqlite3 to enforce foreign key constraints
@@ -63,7 +64,7 @@ def create_user():
     )
     db.session.add(new_user)
     db.session.commit()
-    return jsonify({"message": "User created"}), SUCCESS_STATUS
+    return jsonify({"message": "User created"}), SUCCESS_RESPONSE
 
 
 @app.route("/user/descending_id", methods=["GET"])
@@ -83,7 +84,7 @@ def get_all_users_descending():
             }
         )
 
-    return jsonify(all_users_ll.to_list()), SUCCESS_STATUS
+    return jsonify(all_users_ll.to_list()), SUCCESS_RESPONSE
 
 
 @app.route("/user/ascending_id", methods=["GET"])
@@ -103,7 +104,7 @@ def get_all_users_ascending():
             }
         )
 
-    return jsonify(all_users_ll.to_list()), SUCCESS_STATUS
+    return jsonify(all_users_ll.to_list()), SUCCESS_RESPONSE
 
 
 @app.route("/user/<user_id>", methods=["GET"])
@@ -123,7 +124,7 @@ def get_one_user(user_id):
             }
         )
     user = all_users_ll.get_data_by_id(user_id)
-    return jsonify(user), SUCCESS_STATUS
+    return jsonify(user), SUCCESS_RESPONSE
 
 
 @app.route("/user/<user_id>", methods=["DELETE"])
@@ -131,12 +132,32 @@ def delete_user(user_id):
     user = User.query.filter_by(id=user_id).first()
     db.session.delete(user)
     db.session.commit()
-    return jsonify({"message": f"User {user_id} deleted from database"}), SUCCESS_STATUS
+    return jsonify({"message": f"User {user_id} deleted from database"}), SUCCESS_RESPONSE
 
 
 @app.route("/blog_post/<user_id>", methods=["POST"])
 def create_blog_post(user_id):
-    pass
+    data = request.get_json()
+    user = User.query.filter_by(id=user_id).first()
+    if not user:
+        return jsonify({"message": "user does not exist"}), ERROR_RESPONSE
+
+    ht = HashTable(10)
+    ht.add_key_value("title", data["title"])
+    ht.add_key_value("body", data["body"])
+    ht.add_key_value("date", now)
+    ht.add_key_value("user_id", user_id)
+
+    new_blog_post = BlogPost(
+        title=ht.get_value("title"),
+        body=ht.get_value("body"),
+        date=ht.get_value("date"),
+        user_id=ht.get_value("user_id")
+    )
+
+    db.session.add(new_blog_post)
+    db.session.commit()
+    return jsonify({"message": f"new blog post created for user_id {user_id}"}), SUCCESS_RESPONSE
 
 
 @app.route("/user/<user_id>", methods=["GET"])
