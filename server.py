@@ -160,9 +160,10 @@ def create_blog_post(user_id):
     return jsonify({"message": f"new blog post created for user_id {user_id}"}), SUCCESS_RESPONSE
 
 
-@app.route("/user/<user_id>", methods=["GET"])
-def get_all_blog_posts(user_id):
-    pass
+@app.route("/blog_post/<blog_post_id>", methods=["GET"])
+def get_all_blog_posts(blog_post_id):
+    blog_posts = BlogPost.query.all()
+    
 
 
 @app.route("/blog_post/<blog_post_id>", methods=["GET"])
